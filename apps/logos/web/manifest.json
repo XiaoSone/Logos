@@ -1,0 +1,18 @@
+{
+  "name": "Logos · 话语之间",
+  "short_name": "Logos",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#F7F5EF",
+  "theme_color": "#315C4C",
+  "description": "读经、检索、笔记与个人阅读记录。",
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "logos.svg",
+      "purpose": "any",
+      "type": "image/svg+xml",
+      "sizes": "any"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "source": "https://ebible.org/Scriptures/cmn-cu89s_usfm.zip",
+  "license": "Public Domain",
+  "sourceSha256": "9eb8ef314dc363254c4c7a8ba1d3220d7e8e9d1044b557fefa522cd203b01475",
+  "dataSha256": "69e3fc5299ffd944fc4fce512b3f646670918c9fcd946366548e90c8c1b0e1c8",
+  "books": 66,
+  "chapters": 1189,
+  "verses": 31092,
+  "sections": 2792,
+  "footnotes": 1016,
+  "sourceVerseUnits": 31021,
+  "sourceFootnotes": 1013,
+  "encryption": "AES-256-GCM: 12-byte nonce + ciphertext + 16-byte tag; key excluded from package"
+}

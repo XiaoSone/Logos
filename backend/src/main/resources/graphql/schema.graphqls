@@ -1,0 +1,63 @@
+type Book {
+ id: ID!, bookCode: String!, bookNameZh: String!, bookNameEn: String!, bookNameAbbr: String!
+ testament: Int!, bookOrder: Int!, chapterCount: Int!, chapters: [Chapter!]!
+}
+type Chapter {
+ id: ID!, book: Book!, bookCode: String!, chapter: Int!, sections: [Section!]!
+ verses(limit: Int, offset: Int): [Verse!]!, nextChapter: Chapter, prevChapter: Chapter
+}
+type Verse {
+ id: ID!, bookCode: String!, chapter: Int!, verse: Int!, textZh: String!, verseRef: String!
+ verseLabel: String!, bridgeStart: Int!, section: Section, footnotes: [Footnote!]!
+}
+type Footnote { id: ID!, content: String!, offsetStart: Int!, offsetEnd: Int! }
+type Section {
+ id: ID!, bookCode: String!, chapter: Int!, sectionIndex: Int!, sectionTitle: String,
+ verseStart: Int!, verseEnd: Int!, verseCount: Int!, isPoetry: Boolean!, verses: [Verse!]!, prevSection: Section, nextSection: Section
+}
+enum SearchType { KEYWORD, FUZZY }
+input SearchInput { keyword: String!, type: SearchType = KEYWORD, page: Int = 1, size: Int = 20 }
+type SearchResult { total: Int!, page: Int!, size: Int!, items: [Verse!]! }
+type DailyVerse { id: ID!, date: String!, verse: Verse!, theme: String, meditation: String }
+type BibleKey { key: String!, version: String!, expiresIn: Int! }
+type DeviceBibleKey { deviceKey: String!, version: String!, expiresIn: Int! }
+type GuestToken { token: String!, expiresIn: Int! }
+type User { id: ID!, phone: String, nickname: String }
+type AuthResult { accessToken: String!, user: User! }
+type Bookmark { id: ID!, verse: Verse!, note: String, color: String, createdAt: String!, updatedAt: String! }
+type Note { id: ID!, clientKey: ID!, title: String, verses: [Verse!]!, chapterRange: String, content: String!, tags: [String!]!, createdAt: String!, updatedAt: String! }
+type ReadingProgress { id: ID!, book: Book!, chapter: Int!, verse: Int!, readAt: String! }
+enum FeedRecordType { SCRIPTURE_HIGHLIGHT, NOTE_CREATED, VERSE_SELECTED, BOOKMARK_ADDED, SCRIPTURE_SHARED }
+type FeedRecord { id: ID!, clientKey: ID, type: FeedRecordType!, verse: Verse, verseIds: [ID!]!, note: Note, bookmark: Bookmark, content: String, createdAt: String! }
+type FeedRecordPage { items: [FeedRecord!]!, hasNextPage: Boolean!, endCursor: String }
+type PersonalSnapshot { userId: ID!, bookmarks: [Bookmark!]!, notes: [Note!]!, progress: [ReadingProgress!]!, shares: [FeedRecord!]! }
+enum GuestDataType { BOOKMARK, NOTE, PROGRESS, FEED_RECORD }
+enum GuestDataOperation { UPSERT, DELETE }
+enum GuestFeedRecordType { SCRIPTURE_SHARED }
+input GuestDataItem {
+ clientKey: String!, revision: ID!, type: GuestDataType!, operation: GuestDataOperation = UPSERT,
+ verseRefs: [String!], title: String, content: String, chapterRange: String,
+ color: String, note: String, bookCode: String, chapter: Int, verse: Int,
+ recordType: GuestFeedRecordType, tags: [String!], createdAt: String!, updatedAt: String!
+}
+type ImportResult { imported: Int!, failed: [String!]! }
+type Query {
+ books: [Book!]!, book(bookCode: String!): Book, chapter(bookCode: String!, chapter: Int!): Chapter,
+ verse(ref: String!): Verse, verses(refs: [String!]!): [Verse!]!,
+ section(bookCode: String!, chapter: Int!, sectionIndex: Int!): Section, sections(bookCode: String!, chapter: Int!): [Section!]!,
+ search(input: SearchInput!): SearchResult!, dailyVerse(date: String): DailyVerse,
+ getBibleKey(version: String!): BibleKey!, downloadBible(version: String!): DeviceBibleKey!,
+ me: User, myBookmarks: [Bookmark!]!, myNotes(search: String): [Note!]!, myProgress: [ReadingProgress!]!,
+ myFeedRecords(limit: Int = 50, before: String): FeedRecordPage!, loginAvailable: Boolean!,
+ mySyncSnapshot: PersonalSnapshot!
+}
+type Mutation {
+ issueGuestToken(deviceId: String!): GuestToken!,
+ verifySmsCode(phone: String!, code: String!, inviteCode: String!, deviceId: String!): AuthResult!,
+ addBookmark(verseId: ID!, note: String, color: String): Bookmark!, removeBookmark(id: ID!): Boolean!,
+ addNote(title: String, verseIds: [ID!], chapterRange: String, content: String!, tags: [String!]): Note!,
+ updateNote(id: ID!, title: String, verseIds: [ID!], chapterRange: String, content: String!, tags: [String!]): Note!,
+ removeNote(id: ID!): Boolean!, reportProgress(bookCode: String!, chapter: Int!, verse: Int!): ReadingProgress!,
+ reportVerseSelected(verseId: ID!): Boolean!,
+ importGuestData(items: [GuestDataItem!]!): ImportResult!
+}

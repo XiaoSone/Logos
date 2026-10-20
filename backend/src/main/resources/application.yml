@@ -1,0 +1,30 @@
+server:
+  address: ${SERVER_ADDRESS:127.0.0.1}
+  port: ${PORT:8080}
+spring:
+  application:
+    name: logos
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://127.0.0.1:55432/logos}
+    username: ${DATABASE_USER:logos}
+    password: ${DATABASE_PASSWORD:}
+  sql:
+    init:
+      mode: always
+  graphql:
+    graphiql:
+      enabled: false
+  data:
+    redis:
+      host: ${REDIS_HOST:127.0.0.1}
+      port: ${REDIS_PORT:6379}
+logos:
+  bible-path: ${BIBLE_PATH:../data/bible.json}
+  bible-key-file: ${BIBLE_KEY_FILE:../.tools/bible-key.txt}
+  jwt-secret: ${JWT_SECRET:}
+  dev-login: false
+  allowed-origins: ${ALLOWED_ORIGINS:http://localhost:7357,http://127.0.0.1:7357}
+logging:
+  level:
+    com.baomidou: warn
+    org.springframework.graphql.execution: warn

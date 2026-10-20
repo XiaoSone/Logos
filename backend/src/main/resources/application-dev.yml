@@ -1,0 +1,9 @@
+logos:
+  dev-login: true
+  jwt-secret: ${JWT_SECRET}
+  dev-code: ${DEV_SMS_CODE:246810}
+  dev-invite: ${DEV_INVITE:LOGOS-LOCAL}
+spring:
+  graphql:
+    graphiql:
+      enabled: true

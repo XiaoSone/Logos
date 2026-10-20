@@ -1,0 +1,7 @@
+androguard==4.1.4
+cryptography>=46,<49
+requests>=2.32,<3
+pyyaml>=6,<7
+pyelftools>=0.32,<1
+lxml>=5,<7
+loguru>=0.7,<1
