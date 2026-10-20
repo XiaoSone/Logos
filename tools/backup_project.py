@@ -12,6 +12,7 @@ import json
 import os
 from pathlib import Path
 import shutil
+import stat
 import subprocess
 import uuid
 import zipfile
@@ -97,7 +98,13 @@ def remove_stage(stage, output):
     if resolved.parent != output.resolve() or resolved.name != '.staging':
         raise RuntimeError('Unsafe staging cleanup path')
     if resolved.exists():
-        shutil.rmtree(resolved)
+        def retry_readonly(operation, name, _error):
+            target = Path(name).resolve()
+            if not target.is_relative_to(resolved):
+                raise RuntimeError('Unsafe read-only cleanup path')
+            target.chmod(stat.S_IWRITE | stat.S_IREAD)
+            operation(name)
+        shutil.rmtree(resolved, onerror=retry_readonly)
 
 
 def make_backup(output, pg_bin):
@@ -191,7 +198,6 @@ def make_backup(output, pg_bin):
             'exclusions': ['SDK/JDK/build caches', 'original APK/decompiled assets',
                            'uncommitted working-tree files', 'live Android device not queried'],
         }
-        (output / 'manifest.json').write_text(json.dumps(manifest, indent=2), encoding='utf-8')
         (output / 'RESTORE.txt').write_text(
             'Logos independent backup\n\n'
             f'Commit: {commit}\n'
@@ -211,16 +217,20 @@ def make_backup(output, pg_bin):
             'DPAPI is not a portable secret-escrow solution for a replacement Windows account.\n',
             encoding='utf-8',
         )
-        paths = [path for path in output.rglob('*') if path.is_file() and not path.is_relative_to(stage)]
-        checksums = {path.relative_to(output).as_posix(): digest(path) for path in sorted(paths)}
-        (output / 'SHA256SUMS.json').write_text(json.dumps(checksums, indent=2), encoding='utf-8')
-        print(json.dumps({'backup': str(output), 'commit': commit,
-                          'verifiedFiles': len(checksums), 'postgresRestoreVerified': True}))
     finally:
         if restore_db:
             command([pg_bin / 'psql.exe', '-X', *pg_base, '-d', 'postgres', '-v',
                      'ON_ERROR_STOP=1', '-c', f'DROP DATABASE IF EXISTS {restore_db} WITH (FORCE)'])
         remove_stage(stage, output)
+    # Completion markers are written only after verification AND cleanup succeed.
+    manifest['stagingCleaned'] = True
+    (output / 'manifest.json').write_text(json.dumps(manifest, indent=2), encoding='utf-8')
+    paths = [path for path in output.rglob('*') if path.is_file()]
+    checksums = {path.relative_to(output).as_posix(): digest(path) for path in sorted(paths)}
+    (output / 'SHA256SUMS.json').write_text(json.dumps(checksums, indent=2), encoding='utf-8')
+    print(json.dumps({'backup': str(output), 'commit': commit,
+                      'verifiedFiles': len(checksums), 'postgresRestoreVerified': True,
+                      'stagingCleaned': True}))
 
 
 def extract_private(backup, destination):
